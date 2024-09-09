@@ -1,86 +1,144 @@
-#include <iostream>
-using namespace std;
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define MAX 100
 
-class EMPLOYEE {
-public:
-    int Employee_Number;
-    string Employee_Name;
-    int Basic;
-    int DA=12;
-    int IT =18;
-    int Net_Sal;
-    int Gross_Sal;
-};
+char stack[MAX];
+char infix[MAX], postfix[MAX];
+int top = -1;
 
-class Flight{
-    private:
-    int flight_number;
-    string Destination;
-    float Distance;
-    float Fuel=13.2;
-    void calculate_fuel(){
-        Fuel=Distance<=1000?500:Distance<=2000?1100:2200;
+int space(char c)
+{
+    if(c == ' ' || c == '\t')
+    {
+        return 1;
     }
-    public:
-    Flight():Fuel(13.2){}
-    void set_fuel(float f){
-        Fuel=f;
+    else
+    {
+        return 0;
     }
-    void information_entry(){
-        cout<<"please enter you flight number: ";
-        cin>>flight_number;
-        cout<<"please enter you detination: ";
-        cin>>Destination;
-        cout<<"enter distance to cover: ";
-        cin>>Distance;
+}
 
-        calculate_fuel();
+int precedence(char symbol)
+{
+    switch(symbol)
+    {
+        case '^':
+            return 3;
+        
+        case '*':
+        case '/':
+            return 2;
+
+        case '+':
+        case '-':
+            return 1;
+
+        default:
+            return 0;
     }
+}
 
-    void info_display(){
-        cout << "Flight Number: " << flight_number << endl;
-        cout << "Destination: " << Destination << endl;
-        cout << "Distance: " << Distance << " km" << endl;
-        cout << "Fuel Required: " << Fuel << " liters" << endl;
+void print()
+{
+    int i=0;
+    printf("The equivalent postfix expression is: ");
+    while(postfix[i])
+    {
+        printf("%c", postfix[i++]);
     }
-};
+    printf("\n");
+}
 
-int main() {
-    int n;
-    cout << "Enter the number of employees in your establishment: ";
-    cin >> n;
-
-    for (int i = 0; i < n; i++) {
-        EMPLOYEE employee;
-        cout << "Enter the name of the employee: ";
-        cin >> employee.Employee_Name;
-
-        cout << "Enter the employee number: ";
-        cin >> employee.Employee_Number;
-
-        cout << "Enter the basic salary: ";
-        cin >> employee.Basic;
-
-        cout << "Enter the DA (Dearness Allowance): ";
-        cin >> employee.DA;
-
-        cout << "Enter the IT (Income Tax): ";
-        cin >> employee.IT;
-
-        employee.Gross_Sal = employee.Basic + employee.DA;
-        employee.Net_Sal = employee.Gross_Sal - employee.IT;
-
-        cout << "Employee Name: " << employee.Employee_Name << endl;
-        cout << "Employee Number: " << employee.Employee_Number << endl;
-        cout << "Gross Salary: " << employee.Gross_Sal << endl;
-        cout << "Net Salary: " << employee.Net_Sal << endl;
+void push(char c)
+{
+    if(top == MAX - 1)
+    {
+        printf("Stack Overflow.\n");
+        return;
     }
+    top++;
+    stack[top] = c;
+}
 
-    Flight flight;
+char pop()
+{
+    char c;
+    if(top == -1)
+    {
+        printf("Stack underflow.\n");
+        exit(1);
+    }
+    c = stack[top];
+    top = top - 1;
+    return c;
+}
 
-    flight.information_entry();
-    flight.info_display();
+int IsEmpty()
+{
+    if(top == -1)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
 
+void InfixToPostfix()
+{
+    int i, j = 0;
+    char next, symbol;
 
+    for(i=0; i<strlen(infix); i++)
+    {
+        symbol = infix[i];
+        if(!space(symbol))
+        {
+            switch(symbol)
+            {
+                case '(':
+                    push(symbol);
+                    break;
+                
+                case ')':
+                    while((next=pop()) != '(')
+                    {
+                        postfix[j++] = next;
+                    }
+                    break;
+
+                case '+':
+                case '-':
+                case '*':
+                case '/':
+                case '^':
+                    while(!IsEmpty() && precedence(stack[top]) >= precedence(symbol))
+                    {
+                        postfix[j++] = pop();
+                    }
+                    push(symbol);
+                    break;
+
+                default:
+                    postfix[j++] = symbol;
+            }
+        }
+    }
+    while(!IsEmpty())
+    {
+        postfix[j++] = pop();
+    }
+    postfix[j] = '\0';
+}
+
+int main()
+{
+    printf("Enter the infix expression: ");
+    gets(infix);
+
+    InfixToPostfix();
+    print();
     return 0;
 }
